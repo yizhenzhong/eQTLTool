@@ -106,7 +106,7 @@ def main():
     parser.add_argument('--fgwas_exe', action='store', dest='fgwas_exe', default=None, help="fgwas exe path")
     parser.add_argument('--match_feature', action='store', dest='match_feature', default=None, help="features to match")
     parser.add_argument('--enrich_feature', action='store', dest='enrich_feature', default=None, help="features to match")
-    
+    parser.add_argument('--index', action='store', dest='index', default=None, help="index")
     args = parser.parse_args()
 
     #Parse arguments
@@ -117,7 +117,7 @@ def main():
     FGWAS_EXE = args.fgwas_exe
     MATCH_FEATURE = args.match_feature
     ENRICH_FEATURE = args.enrich_feature
-
+    ENRICH_INDEX = int(args.index)
 
     #Get output file prefix
     if not args.output_dir:
@@ -152,7 +152,9 @@ def main():
     	enrich.match(QTLfeature, NonQTLfeature, outfile)
 
     if args.analysis == "enrich":
-    	enrich.enrich(ENRICH_FEATURE, OUT_NAME, eqtl_object)    
+        if not os.path.exists(OUTPUT_DIR + "enrich"):
+                os.makedirs(OUTPUT_DIR + "enrich")
+        enrich.enrich(ENRICH_FEATURE, OUTPUT_DIR, OUTPUT_PREFIX, eqtl_object, ENRICH_INDEX)    
 	    
 	    
 	    	
