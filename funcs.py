@@ -106,7 +106,7 @@ def main():
     parser.add_argument('--fgwas_exe', action='store', dest='fgwas_exe', default=None, help="fgwas exe path")
     parser.add_argument('--match_feature', action='store', dest='match_feature', default=None, help="features to match")
     parser.add_argument('--enrich_feature', action='store', dest='enrich_feature', default=None, help="features to match")
-    parser.add_argument('--index', action='store', dest='index', default=None, help="index")
+    parser.add_argument('--index', action='store', dest='index', default=1, help="index")
     args = parser.parse_args()
 
     #Parse arguments
@@ -128,26 +128,29 @@ def main():
         OUTPUT_PREFIX = "eqtl"
     else: 
         OUTPUT_PREFIX = args.output_prefix
-
-    OUT_NAME = OUTPUT_DIR + OUTPUT_PREFIX
+    if not os.path.exists(OUTPUT_DIR):
+         os.makedirs(OUTPUT_DIR)
+    OUT_NAME = OUTPUT_DIR + "/" + OUTPUT_PREFIX
 
     #Error check
     if args.analysis not in ['fgwas', 'match', 'enrich']:
         print("Error: Specified analysis is not supported")
     if not os.path.exists(OUTPUT_DIR):
-        print("Error: Output directory does not exists")
-
+        print("Error: Output directory does not exists") 
 
     eqtl_object = eqtls(EQTL, OUT_NAME)
 
     if args.analysis == "match":
     	outfile = OUT_NAME + "_match.txt"
-    	fatureTable = pd.read_table(FEATURE, header=None, names=["chr","snpid","A1","A2","MAF","count","minDIST","LDSC"], sep='\t')
-    	print(fatureTable.head())
-    	QTLfeature = fatureTable[fatureTable['snpid'].isin(set(
+    	featureTable = pd.read_table(MATCH_FEATURE,  
+         sep='\t')
+     	#featureTable = pd.read_table(FEATURE, nrows=1000, sep='\t')
+        #featureTable = pd.read_table(FEATURE, nrows=1000)
+    	print(featureTable.head())
+    	QTLfeature = featureTable[featureTable['snpid'].isin(set(
     		eqtl_object.snpid))].reset_index(drop=True)
     	print(QTLfeature.shape)
-    	NonQTLfeature = fatureTable[-fatureTable['snpid'].isin(set(eqtl_object.snpid))].reset_index(drop=True)
+    	NonQTLfeature = featureTable[-featureTable['snpid'].isin(set(eqtl_object.snpid))].reset_index(drop=True)
     	print(NonQTLfeature.shape)
     	enrich.match(QTLfeature, NonQTLfeature, outfile)
 
@@ -155,7 +158,6 @@ def main():
         if not os.path.exists(OUTPUT_DIR + "enrich"):
                 os.makedirs(OUTPUT_DIR + "enrich")
         enrich.enrich(ENRICH_FEATURE, OUTPUT_DIR, OUTPUT_PREFIX, eqtl_object, ENRICH_INDEX)    
-	    
 	    
 	    	
 
