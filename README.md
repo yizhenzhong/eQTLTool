@@ -1,24 +1,41 @@
-#This toolkit provides downstream analysis after eQTL mapping.
+# This toolkit provides downstream analysis after eQTL mapping.
 
 Including:
-* matching null SNPs for eQTLs
-* eQTL enrichment in functional annotations compared with a null set
+* matching null SNPs for eQTLs (--match)
+* eQTL enrichment in functional annotations compared with a null set (--enrich)
 
-###Required input/argument:
-* eQTL file (--eqtl) : eQTL files including required columns (chr, pos, geneid, snpid), optional columns (beta, pvalue)
-* type of analysis (--analysis): choose from match and enrich
+### Required input/argument:
+* eQTL file (--eqtl) : eQTL file including required columns (chr, pos, geneid, snpid), optional columns (beta, pvalue).
+* type of analysis (--analysis): choose from [match, enrich].
 
-###Optional input/argument:
-* Ouput dir (--output_dir): default is current directory
-* Output prefix (--output_prefix): default is eqtl
-* files including features to match (--match_feature): required columns (snpid (will be matched with eQTL table),
-        MAF, minDIST, LDSC
+### Optional input/argument:
+* Ouput dir (--output_dir): default is current directory.
+* Output prefix (--output_prefix): default is eqtl.
+* file including features to match (--match_feature): required columns (snpid, MAF, minDIST, LDSC). The snpid column will be matched with eQTL file snpid.
+* file including features to test for enrichment (--enrich_feature): required columns (snpid(1st), enrichment features). The snpid column will be matched with eQTL file snpid.
+* index of features to test enrichment (--index). Choose from 1 to the total number of features in enrich_feature file).
 
 
+### Analysis:
 
-###Analysis:
+##### match: match eQTL to null set of SNPs by MAF within 5%, LDSC within 20% and minDIST within 20%
+- output file: nrow is the number of eQTLs, ncol is 10000 (10000 null set) + 1 (eQTLs to be matched),
+- example: 
+```python
+python funcs.py --analysis match --eqtl hepatocytes.txt \
+        --output_dir test \
+        --output_prefix hepatocytes \
+        --match_feature match_feature.txt
+```
+##### enrich: find the number of feature in true eQTLs and matched null set
+- input: --enrich_feature, (matched null set from previous match analysis will be readed automatically, should use the same output_prefix)
 
-match: match eQTL to null set of SNPs by MAF within 5%, LDSC within 20% and minDIST within 20%
-- output file: nrow is the number of eQTLs, ncol is 10000 + 1 (eQTLs to be matched)
+- example:
+```python
+ python funcs.py --analysis enrich --eqtl hepatocytes.txt \
+         --output_dir test \
+         --output_prefix hepatocytes \
+         --enrich_feature encode_features.txt
+```
 
 

@@ -142,11 +142,7 @@ def main():
 
     if args.analysis == "match":
     	outfile = OUT_NAME + "_match.txt"
-    	featureTable = pd.read_table(MATCH_FEATURE,  
-         sep='\t')
-     	#featureTable = pd.read_table(FEATURE, nrows=1000, sep='\t')
-        #featureTable = pd.read_table(FEATURE, nrows=1000)
-    	print(featureTable.head())
+    	featureTable = pd.read_table(MATCH_FEATURE,  sep='\t')
     	QTLfeature = featureTable[featureTable['snpid'].isin(set(
     		eqtl_object.snpid))].reset_index(drop=True)
     	print(QTLfeature.shape)
@@ -155,8 +151,8 @@ def main():
     	enrich.match(QTLfeature, NonQTLfeature, outfile)
 
     if args.analysis == "enrich":
-        if not os.path.exists(OUTPUT_DIR + "enrich"):
-                os.makedirs(OUTPUT_DIR + "enrich")
+        if not os.path.exists(OUTPUT_DIR + "/enrich/"):
+                os.makedirs(OUTPUT_DIR + "/enrich/")
         enrich.enrich(ENRICH_FEATURE, OUTPUT_DIR, OUTPUT_PREFIX, eqtl_object, ENRICH_INDEX)    
 	    
 	    	

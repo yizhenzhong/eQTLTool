@@ -31,8 +31,12 @@ def match(QTLfeature, NonQTLfeature, outfile):
         df.to_csv(outfile, sep="\t", index=False)
         return df
 
+def featureDict(enrich_feature, feature):
+        feature_dict = dict(zip(enrich_feature.snpid, enrich_feature[feature]))
+        return feature_dict
 
-
+def sumFeature(feature_dict, snplist):
+        return sum([feature_dict[i] for i in snplist])
 
 def enrich(ENRICH_FEATURE, OUTPUT_DIR, OUT_PREFIX, eqtl_object, index):
         '''
@@ -44,30 +48,20 @@ def enrich(ENRICH_FEATURE, OUTPUT_DIR, OUT_PREFIX, eqtl_object, index):
 
         '''
         
-        enrich_feature = pd.read_table(ENRICH_FEATURE, sep="\t",  index_col=0) 
-        nullset = pd.read_table(OUTPUT_DIR + OUT_PREFIX + "_match.txt", sep='\t') #read the generated null set, snps, row is eQTL, column is matched SNPs
+        enrich_feature = pd.read_table(ENRICH_FEATURE, sep="\t") 
+        nullset = pd.read_table(OUTPUT_DIR + "/" + OUT_PREFIX + "_match.txt", sep='\t') #read the generated null set, snps, row is eQTL, column is matched SNPs
         features = list(enrich_feature.columns.values) #get features for enrichment
-        
-        res = OrderedDict()
         feature = features[index]
-#        count_eQTL = sum(enrich_feature.loc[enrich_feature['snpid'].isin(set(eqtl_object.snpid)), feature]) #count how many eQTLs have this feaure
-#        res[feature] = [count_eQTL]
-        print(enrich_feature.head())
-        def func(x):
-                return enrich_feature[x, feature]
-        #count_null = nullset.apply(func, 0)
-                 #found in ths null set, how many snps have this feature
         
-        for i in range(index*100, (index+1)*100):
-                print(i)
-                snps = nullset.iloc[:,i].tolist()
-                dfEnrich = enrich_feature.loc[snps]
-        #res[feature] = count_null #append the count to the dict
-
-        #dfEnrich = pd.DataFrame.from_dict(res)
-                outfile = OUTPUT_DIR + "enrich/" + OUT_PREFIX + "_nullset" + str(i) + "_enrich.txt"
-                print(outfile)
-                dfEnrich.to_csv(outfile, sep="\t", index=False)
+        feature_dict = featureDict(enrich_feature, feature)
+        result = [0]*10001
+        for n, column in enumerate(nullset):
+                snplist = nullset[column]
+                result[n] = sumFeature(feature_dict, snplist)
+        
+        outfile = OUTPUT_DIR + "/enrich/" + OUT_PREFIX + feature + "_enrich.txt"
+        df = pd.DataFrame({feature:result})
+        df.to_csv(outfile, sep="\t", index=False)
 
 
 
