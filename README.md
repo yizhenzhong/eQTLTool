@@ -1,4 +1,6 @@
-# This toolkit provides downstream analysis after eQTL mapping.
+# eQTLTool
+
+## This toolkit provides downstream analysis after eQTL mapping.
 
 Including:
 * matching null SNPs for eQTLs (--match)
@@ -18,9 +20,13 @@ Including:
 
 ### Analysis:
 
-##### match: match eQTL to null set of SNPs by MAF within 5%, LDSC within 20% and minDIST within 20%
-- output file: nrow is the number of eQTLs, ncol is 10000 (10000 null set) + 1 (eQTLs to be matched),
+##### match: match eQTL to null set of SNPs by quantile bins
+Cut the MAF, LDSC, and minDIST with 10 quantile bins. For each eQTL, find SNPs in the same bin for all three criterias. Sampled with replacement for 10000 times.
+
+- output file: prefix+match.txt nrow is the number of eQTLs, ncol is 10000 (10000 null set) + 1 (eQTLs to be matched)
+                prefix+count.txt how many eQTLs matched for each queried SNPs
 - example: 
+
 ```python
 python funcs.py --analysis match --eqtl hepatocytes.txt \
         --output_dir test \
@@ -36,6 +42,7 @@ python funcs.py --analysis match --eqtl hepatocytes.txt \
          --output_dir test \
          --output_prefix hepatocytes \
          --enrich_feature encode_features.txt
+         --index 1
 ```
 
 
