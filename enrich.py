@@ -2,34 +2,46 @@
 
 from random import choices
 import pandas as pd
+import matplotlib.pyplot as plt
 from collections import OrderedDict
 
 
-def match(QTLfeature, NonQTLfeature, outfile):
-        data = [[str(i) for i in range(10001)]]
-        for i in range(QTLfeature.shape[0]):
-                temp_maf = QTLfeature.at[i,"MAF"]
-                temp_ldsc = QTLfeature.at[i,"LDSC"]
-                temp_dist = QTLfeature.at[i,"minDIST"]
+def match(featureTable, OUT_NAME, eqtl_object):
+        outfile = OUT_NAME + "_match.txt"
+        outcount = OUT_NAME + "_count.txt"
+        
+        #get 10 quantile bins, and update the data with bin id
+        featureTable.update(pd.qcut(featureTable['MAF'], q=10, labels=range(1,11)))
+        featureTable.update(pd.qcut(featureTable['minDIST'], q=10, labels=range(1,11)))
+        featureTable.update(pd.qcut(featureTable['LDSC'], q=10, labels=range(1,11)))
 
+        #split the data into eQTL and non eQTL table
+        QTLfeature = featureTable[featureTable['snpid'].isin(set(
+                 eqtl_object.snpid))].reset_index(drop=True)
+        NonQTLfeature = featureTable[-featureTable['snpid'].isin(set(
+                eqtl_object.snpid))].reset_index(drop=True)
+
+        print("QTLtable shape:". QTLfeature.shape) 
+
+        #match null SNPs for each eQTL 
+        data = []
+        count = []
+        matched_snp = []
+        for index, row in QTLfeature.iterrows():
+                temp_snps = NonQTLfeature.loc[(NonQTLfeature['LDSC'] == row.LDSC) & (NonQTLfeature['MAF'] == row.MAF) & (NonQTLfeature['minDIST'] == row.minDIST)]['snpid']
+                matched_snp.append(row['snpid'])
+                count.append(temp_snps.count())
                 try:
-                        index1=  NonQTLfeature['MAF'].between(temp_maf*0.95, temp_maf*1.05) & NonQTLfeature['minDIST'].between(temp_dist*0.8, temp_dist*1.2)
-                        if temp_ldsc > 0:
-                                index2 = NonQTLfeature['LDSC'].between(temp_ldsc*(0.8), temp_ldsc*1.2) 
-                        else:
-                                index2 = NonQTLfeature['LDSC'].between(temp_ldsc*(1.2), temp_ldsc*0.8)
-
-                        snpin =  NonQTLfeature[index1&index2]['snpid']
-                        print(len(snpin))
-                        data.append([QTLfeature.at[i,"snpid"]]+ choices(snpin.tolist(), k=10000))
+                        data.append(temp_snps.sample(10, replace=True ).tolist())
                 except: 
-                        print(i, QTLfeature.at[i,"snpid"])
+                        print(row["snpid"]i, "is not matched to any SNPs!")
                         continue	
-                
-        df = pd.DataFrame(data[1:], columns=data[0])
-        print(df.shape)
-        df.to_csv(outfile, sep="\t", index=False)
+        df = pd.DataFrame(data, index = matched_snp)
+        count_table = pd.DataFrame({'count':count}, index=matched_snp)
+        df.to_csv(outfile, sep="\t", index=True, header=False)
+        count_table.to_csv(outcount, sep="\t", index=True)
         return df
+
 
 def featureDict(enrich_feature, feature):
         feature_dict = dict(zip(enrich_feature.snpid, enrich_feature[feature]))
