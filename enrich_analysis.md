@@ -1,6 +1,6 @@
-# eQTLTool
+# eQTL enrich analysis
 
-## This toolkit provides downstream analysis after eQTL mapping.
+## This analysis provides downstream analysis after eQTL mapping.
 
 Including:
 * matching null SNPs for eQTLs (--match)
