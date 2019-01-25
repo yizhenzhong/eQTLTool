@@ -141,14 +141,8 @@ def main():
     eqtl_object = eqtls(EQTL, OUT_NAME)
 
     if args.analysis == "match":
-    	outfile = OUT_NAME + "_match.txt"
     	featureTable = pd.read_table(MATCH_FEATURE,  sep='\t')
-    	QTLfeature = featureTable[featureTable['snpid'].isin(set(
-    		eqtl_object.snpid))].reset_index(drop=True)
-    	print(QTLfeature.shape)
-    	NonQTLfeature = featureTable[-featureTable['snpid'].isin(set(eqtl_object.snpid))].reset_index(drop=True)
-    	print(NonQTLfeature.shape)
-    	enrich.match(QTLfeature, NonQTLfeature, outfile)
+    	enrich.match(featureTable, OUT_NAME, eqtl_object)
 
     if args.analysis == "enrich":
         if not os.path.exists(OUTPUT_DIR + "/enrich/"):
