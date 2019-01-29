@@ -13,12 +13,13 @@ Rscript eqtl.matrixEL.r dosage_file \
 ### Input:
 ####  Dosage file
 - one header
-- one row for SNP ID
+- one column for SNP ID
 - Tab separated
 
 
 #### snp_location_file
-- one header, space separated
+- one header
+- space separated
 
 #### Gene expression file
 - space separated
