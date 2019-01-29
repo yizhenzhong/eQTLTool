@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import subprocess
 import argparse
 import get_eqtl
@@ -23,7 +22,7 @@ def runCis(vcf, bed, cov, dirs, prefix, analysis, samples):
 
                 
                 #cmd2 = "QTLtools_1.1_Ubuntu12.04_x86_64 cis \\\n" \
-                cmd2 = "/projects/b1047/zhong/software/FastQTL/bin/fastQTL.static  \\\n" \
+                cmd2 = "fastQTL.static  \\\n" \
                 + "--vcf " + dirs + "/data/" + vcf + " \\\n" \
                 + "--bed " + dirs + "/data/" + bed + " \\\n" \
                 + "--cov " + dirs + "/data/" + cov + " \\\n" \
