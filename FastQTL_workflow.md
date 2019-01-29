@@ -1,5 +1,10 @@
 # To run eQTL mapping with [FastQTL](http://fastqtl.sourceforge.net/)
 
+Note: Use fastQTL.static
+
+program should be able to call directly
+
+
 ## Input
 
 All the input files should be put in the working_dir/data
