@@ -42,7 +42,7 @@ def BY_adj(eqtls):
                 min_BY.append(min(BY_p))#get the minimal adjusted BY pvalue
         return eqtls,min_BY            
 
-def process(in_f):
+def process(in_f, threshold=0.05):
         print("getting eQTLs....")
 
         eqtls = get_eqtl(in_f)# for each gene, first list is the snp name, second list is the nominal pvalue
@@ -55,7 +55,7 @@ def process(in_f):
         min_BY_p =  st.pvalues(np.asarray(min_BY))
         BY_BH_p = st.pvalues.BH(min_BY_p)
 
-        max_p = max(i for i in BY_BH_p if i < 0.05)
+        max_p = max(i for i in BY_BH_p if i < threshold)
         num = (BY_BH_p<0.1).sum()
         num1 = (BY_BH_p<0.05).sum()
         num2 = (BY_BH_p<0.01).sum()
@@ -64,7 +64,7 @@ def process(in_f):
         max_p_index = BY_BH_p.tolist().index(max_p)
         BY_cutoff = min_BY[max_p_index]
         BY_BH_p = BY_BH_p.tolist()
-        out_name = in_f.split(".")[0] + "_BY_BH_sig_0.05.out"
+        out_name = in_f.split(".")[0] + "_BY_BH_sig_{}.out".format(str(threshold))
         out_n = open(out_name,"w")
         out_n.write("SNP        gene    beta    t-stat  p-value FDR     BY_pvalue       BY_BH_value\n")
         write_sig(out_n,BY_cutoff,eqtls_BY,BY_BH_p)
@@ -84,7 +84,8 @@ def write_sig(out_n,BY_cutoff,eqtls,BY_BH_p):
         process(i)
 
 input_f = sys.argv[1]
-process(input_f)
+threshold = sys.argv[2]
+process(input_f, threshold)
 #num_cores = multiprocessing.cpu_count()
 #Parallel(n_jobs=num_cores)(delayed(process)(i) for i in files)
 
