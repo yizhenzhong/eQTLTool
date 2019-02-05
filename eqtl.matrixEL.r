@@ -4,7 +4,7 @@
 #######################################
 #library(LAMatrix)
 library(MatrixEQTL)
-library(methods)
+#library(methods)
 useModel = modelLINEAR
 
 print("file1: dosage, file2: snp location, file3: expression: file4: gene location, file5: covariate, file6: output")
@@ -12,6 +12,7 @@ args = commandArgs(trailingOnly=TRUE)
 SNP_file_name=args[1]
 snps_Location_File_name=args[2]
 expression_file=args[3]
+gene_location_file_name=args[4]
 covariates_file_name=args[5]
 
 output_file_name_tra=tempfile()
@@ -83,7 +84,7 @@ print(str(snp))
 #############################################
 #compute eQTL
 #############################################
-me=LAMatrix_main(snps=snp,
+me=Matrix_eQTL_main(snps=snp,
                     gene=gene,
                     cvrt=cvrt,
                     output_file_name = output_file_name_tra,
