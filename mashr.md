@@ -1,4 +1,4 @@
-### mashr workflow
+# mashr workflow
 
 
 "In this notebook, we did not apply the inference to all the gene-snp pairs. Rather we focused on the "top" gene-snp pairs as a demonstration. It should be straightforward to configure the Posterior computatoin step to work on all gene-snp pairs instead."
@@ -88,4 +88,5 @@ print(get_loglik(m.c.z))
 
 ```
 
-* This step must be preformed using all the tests (or a large random subset), because this is where mash learns that many tests are null and corrects for it.
+According to the paper. The lfsr can also be computed using only the Z scores. However, the posterior mean estimates that arise from this model are estiamtes of effect size/standard error.
+
