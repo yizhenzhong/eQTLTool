@@ -1,7 +1,5 @@
 import sys
-import multiprocessing as mp
 import pandas as pd
-import pickle
 import os
 import re
 
@@ -9,7 +7,7 @@ import re
 def grep(g, eqtl_dir, condi, output_dir):
         print("grep {} from condition{}".format(g, condi))
         if not os.path.exists("{}{}_{}.txt".format( output_dir, g,condi)):
-                script = "grep {} {}condition{}_10peer_covariate_dosage.out >{}{}_{}.txt".format(g, eqtl_dir,condi, output_dir, g,condi)
+                script = "grep {} {}condition{}_10peer_covariate_all_dosage.out >{}{}_{}.txt".format(g, eqtl_dir,condi, output_dir, g,condi)
                 os.system(script)
 
 
@@ -43,14 +41,16 @@ def get_max(merged):
 def main():
         # Define an output queue
         f="/projects/b1047/zhong/Hepatocyte_project/data/expression/common_genes.txt"
-        gene_list = [s.strip() for s in open(f)] #get all the genes
-        res = {}
-        res["random"] = {}
-        res["max"] = {}
-
         eqtl_dir = "/projects/b1047/zhong/Hepatocyte_project/results/eQTL/"
         output_dir = "/projects/b1047/zhong/Hepatocyte_project/results/mashr/input/"
         index = int(sys.argv[1])
+    
+        gene_list = [s.strip() for s in open(f)] #get all the genes
+        
+        res = {}
+        res["random"] = {}
+        res["max"] = {}       
+        
         for gene in gene_list[index*100: (index+1)*100]:#can do parallel
                 print(gene)
                 for condi in range(1, 8):
@@ -59,12 +59,22 @@ def main():
                 merged = merge(dfs)
                 if merged.size >0:
                         merged_t = subset(merged, "t-stat")
-                        res["random"][gene] = get_random(merged_t)
-                        res["max"][gene] = get_max(merged_t)
+                        merged_beta = subset(merged, "beta")
+                        random_t = get_random(merged_t)
+                        max_t = get_max(merged_t)
+                        res["random"][gene] = {}
+                        res["random"][gene]["t"] = random_t 
+                        res["max"][gene] = {}
+                        res["max"][gene]["t"] = max_t
+
+                        res["random"][gene]["beta"] = merged_beta.loc[random_t.index.values]
+                        res["max"][gene]["beta"] = merged_beta.loc[max_t.index.values]
 
 
-        pd.concat(res["random"].values()).to_csv("{}randon_{}.txt".format( output_dir, index), sep="\t", index=False)
-        pd.concat(res["max"].values()).to_csv("{}max_{}.txt".format( output_dir, index), sep="\t", index=False   )
+        pd.concat([i["beta"] for i in res["random"].values()]).to_csv("{}random_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
+        pd.concat([i["beta"] for i in res["max"].values()]).to_csv("{}max_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
+        pd.concat([i["t"] for i in res["random"].values()]).to_csv("{}random_t_{}.txt".format( output_dir, index), sep="\t", index=False)
+        pd.concat([i["t"] for i in res["max"].values()]).to_csv("{}max_t_{}.txt".format( output_dir, index), sep="\t", index=False)
 
 
         
