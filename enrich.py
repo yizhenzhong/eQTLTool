@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from collections import OrderedDict
 
 
-def match(featureTable, OUT_NAME, eqtl_object):
-        outfile = OUT_NAME + "_match.txt"
-        outcount = OUT_NAME + "_count.txt"
+def match(featureTable, OUT_NAME, eqtl_object, index=None):
+        outfile = OUT_NAME + "_match_{}.txt".format(str(index))
+        outcount = OUT_NAME + "_count_{}.txt".format(str(index))
         #get 10 quantile bins, and update the data with bin id
-        featureTable.update(pd.qcut(featureTable['MAF'], q=20, labels=range(1,21)))
-        featureTable.update(pd.qcut(featureTable['minDIST'], q=20, labels=range(1,21)))
-        featureTable.update(pd.qcut(featureTable['LDSC'], q=20, labels=range(1,21)))
+        featureTable.update(pd.qcut(featureTable['MAF'], q=10))
+        featureTable.update(pd.qcut(featureTable['minDIST'], q=10, duplicates="drop"))
+        featureTable.update(pd.qcut(featureTable['LDSC'], q=10))
 
         #split the data into eQTL and non eQTL table
         QTLfeature = featureTable[featureTable['snpid'].isin(set(
@@ -23,24 +23,27 @@ def match(featureTable, OUT_NAME, eqtl_object):
         print("QTLtable shape:", QTLfeature.shape) 
 
         #match null SNPs for each eQTL 
-        data = []
+
+        if index:
+                QTLfeature = QTLfeature.iloc[int(index)*500:(int(index)+1)*500, ]
+        data = pd.DataFrame(index=QTLfeature["snpid"],columns=range(10000)) 
         count = []
-        matched_snp = []
+        print(QTLfeature.shape)
         for index, row in QTLfeature.iterrows():
+                print(index)
+                
                 temp_snps = NonQTLfeature.loc[(NonQTLfeature['LDSC'] == row.LDSC) & (NonQTLfeature['MAF'] == row.MAF) & (NonQTLfeature['minDIST'] == row.minDIST)]['snpid']
-                matched_snp.append(row['snpid'])
                 count.append(temp_snps.count())
                 try:
-                        data.append(temp_snps.sample(10000, replace=True ).tolist())
+                        data.loc[row["snpid"]]=temp_snps.sample(10000, replace=True ).tolist()
                 except: 
                         print(row["snpid"], "is not matched to any SNPs!")
                         continue	
-        df = pd.DataFrame(data, index = matched_snp)
-        count_table = pd.DataFrame({'count':count}, index=matched_snp)
-        print(count_table.describe())
-        df.to_csv(outfile, sep="\t", index=True, header=False)
+               
+        count_table = pd.DataFrame({'count':count}, index=QTLfeature['snpid'])
+        data.to_csv(outfile, sep="\t", index=True, header=False)
         count_table.to_csv(outcount, sep="\t", index=True)
-        return df
+        return data 
 
 
 def featureDict(enrich_feature, feature):
@@ -50,7 +53,7 @@ def featureDict(enrich_feature, feature):
 def sumFeature(feature_dict, snplist):
         return sum([feature_dict[i] for i in snplist])
 
-def enrich(ENRICH_FEATURE, OUTPUT_DIR, OUT_PREFIX, eqtl_object, index):
+def enrich(ENRICH_FEATURE, OUTPUT_DIR, OUT_PREFIX, eqtl_object, match, index):
         '''
         EnrichFeature: name of the file name for the feature to test enrichment, header is the name of feature, first column is snpid.
         OUT_NAME: prefix of output file
@@ -61,12 +64,16 @@ def enrich(ENRICH_FEATURE, OUTPUT_DIR, OUT_PREFIX, eqtl_object, index):
         '''
         
         enrich_feature = pd.read_table(ENRICH_FEATURE, sep="\t") 
-        nullset = pd.read_table(OUTPUT_DIR + "/" + OUT_PREFIX + "_match.txt", sep='\t') #read the generated null set, snps, row is eQTL, column is matched SNPs
+        if match:
+                nullset=pd.read_table(match, names=range(1001))
+        else:                
+                nullset = pd.read_table(OUTPUT_DIR + "/" + OUT_PREFIX + "_match.txt", sep='\t') #read the generated null set, snps, row is eQTL, column is matched SNPs
+        print(nullset.iloc[:5,:5])
         features = list(enrich_feature.columns.values) #get features for enrichment
-        feature = features[index]
+        feature = features[int(index)]
         print(feature) 
         feature_dict = featureDict(enrich_feature, feature)
-        result = [0]*10001
+        result = [0]*1001
         for n, column in enumerate(nullset):
                 snplist = nullset[column]
                 result[n] = sumFeature(feature_dict, snplist)

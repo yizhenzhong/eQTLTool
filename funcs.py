@@ -107,6 +107,7 @@ def main():
     parser.add_argument('--match_feature', action='store', dest='match_feature', default=None, help="features to match")
     parser.add_argument('--enrich_feature', action='store', dest='enrich_feature', default=None, help="features to match")
     parser.add_argument('--index', action='store', dest='index', default=1, help="index")
+    parser.add_argument('--match', action='store', dest='match', default=None, help="matched snp")
     args = parser.parse_args()
 
     #Parse arguments
@@ -117,7 +118,8 @@ def main():
     FGWAS_EXE = args.fgwas_exe
     MATCH_FEATURE = args.match_feature
     ENRICH_FEATURE = args.enrich_feature
-    ENRICH_INDEX = int(args.index)
+    ENRICH_INDEX = args.index
+    MATCH = args.match
 
     #Get output file prefix
     if not args.output_dir:
@@ -130,6 +132,7 @@ def main():
         OUTPUT_PREFIX = args.output_prefix
     if not os.path.exists(OUTPUT_DIR):
          os.makedirs(OUTPUT_DIR)
+                 
     OUT_NAME = OUTPUT_DIR + "/" + OUTPUT_PREFIX
 
     #Error check
@@ -137,17 +140,18 @@ def main():
         print("Error: Specified analysis is not supported")
     if not os.path.exists(OUTPUT_DIR):
         print("Error: Output directory does not exists") 
-
+   
     eqtl_object = eqtls(EQTL, OUT_NAME)
 
     if args.analysis == "match":
     	featureTable = pd.read_table(MATCH_FEATURE,  sep='\t')
-    	enrich.match(featureTable, OUT_NAME, eqtl_object)
+
+    	enrich.match(featureTable, OUT_NAME, eqtl_object, ENRICH_INDEX)
 
     if args.analysis == "enrich":
         if not os.path.exists(OUTPUT_DIR + "/enrich/"):
                 os.makedirs(OUTPUT_DIR + "/enrich/")
-        enrich.enrich(ENRICH_FEATURE, OUTPUT_DIR, OUTPUT_PREFIX, eqtl_object, ENRICH_INDEX)    
+        enrich.enrich(ENRICH_FEATURE, OUTPUT_DIR, OUTPUT_PREFIX, eqtl_object, MATCH, ENRICH_INDEX)    
 	    
 	    	
 

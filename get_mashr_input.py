@@ -30,8 +30,8 @@ def subset(merged, c):
         return merged
 
 
-def get_random(merged):
-        return merged.sample(10)
+def get_random(merged, max_t):
+        return merged.drop(max_t.index.values).sample(10)
 
 
 def get_max(merged):
@@ -60,8 +60,9 @@ def main():
                 if merged.size >0:
                         merged_t = subset(merged, "t-stat")
                         merged_beta = subset(merged, "beta")
-                        random_t = get_random(merged_t)
+                        
                         max_t = get_max(merged_t)
+                        random_t = get_random(merged_t,max_t)
                         res["random"][gene] = {}
                         res["random"][gene]["t"] = random_t 
                         res["max"][gene] = {}
@@ -69,7 +70,6 @@ def main():
 
                         res["random"][gene]["beta"] = merged_beta.loc[random_t.index.values]
                         res["max"][gene]["beta"] = merged_beta.loc[max_t.index.values]
-
 
         pd.concat([i["beta"] for i in res["random"].values()]).to_csv("{}random_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
         pd.concat([i["beta"] for i in res["max"].values()]).to_csv("{}max_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
