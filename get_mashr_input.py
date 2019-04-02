@@ -35,7 +35,7 @@ def get_random(merged, max_t):
 
 
 def get_max(merged):
-        return merged.loc[merged.iloc[:,range(1,8)].max(axis=1).idxmax()].to_frame().transpose()
+        return merged.loc[merged.iloc[:,range(1,8)].abs().max(axis=1).idxmax()].to_frame().transpose()
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
 
                         res["random"][gene]["beta"] = merged_beta.loc[random_t.index.values]
                         res["max"][gene]["beta"] = merged_beta.loc[max_t.index.values]
-
+                break
         pd.concat([i["beta"] for i in res["random"].values()]).to_csv("{}random_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
         pd.concat([i["beta"] for i in res["max"].values()]).to_csv("{}max_beta_{}.txt".format( output_dir, index), sep="\t", index=False)
         pd.concat([i["t"] for i in res["random"].values()]).to_csv("{}random_t_{}.txt".format( output_dir, index), sep="\t", index=False)
